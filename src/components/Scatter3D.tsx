@@ -1,27 +1,15 @@
-import React, { useEffect, useState } from "react";
-import BrowserOnly from "@docusaurus/BrowserOnly";
+import React, { useState, useEffect } from "react";
+import BrowserOnly from "@docusaurus/BrowserOnly"; // BrowserOnly import edilmelidir
 import * as XLSX from "xlsx";
-import { Plot } from "react-plotly.js";
+import { Plot } from "react-plotly.js"; // Plotly'yi doğru bir şekilde import edin
 
 // Excel dosyasındaki sütun adları
 const colNames = [
-  "x",
-  "y",
-  "z",
-  "WWR",
-  "Interior Shelf",
-  "Interior Shelf Rotation Angle",
-  "Interior Shelf Height (m)",
-  "Interior Shelf Depth (m)",
-  "Exterior Shelf",
-  "Exterior Shelf Rotation Angle",
-  "Exterior Shelf Height (m)",
-  "Exterior Shelf Depth (m)",
-  "Cooling Load (kWh)",
-  "Heating Load (kWh)",
-  "UDI-a (%)",
-  "Artificial Lighting Load (kWh)",
-  "UDI-a (secondary) (%)",
+  "x", "y", "z", "WWR", "Interior Shelf", "Interior Shelf Rotation Angle",
+  "Interior Shelf Height (m)", "Interior Shelf Depth (m)", "Exterior Shelf",
+  "Exterior Shelf Rotation Angle", "Exterior Shelf Height (m)",
+  "Exterior Shelf Depth (m)", "Cooling Load (kWh)", "Heating Load (kWh)",
+  "UDI-a (%)", "Artificial Lighting Load (kWh)", "UDI-a (secondary) (%)",
 ];
 
 interface DataRow {
@@ -145,41 +133,39 @@ const Scatter3D: React.FC = () => {
           ) : hasData ? (
             <Plot
               useResizeHandler
-              data={[
-                {
-                  name: 'Search Space',
-                  type: "scatter3d",
-                  mode: "markers",
-                  x: dataDF.map(d => d["Cooling Load (kWh)"]),
-                  y: dataDF.map(d => d["Heating Load (kWh)"]),
-                  z: dataDF.map(d => d["Artificial Lighting Load (kWh)"]),
-                  customdata: dataDF.map(d => d["UDI-a (%)"]),
-                  hovertemplate: hoverTemplate,
-                  marker: {
-                    symbol: 'square',
-                    color: dataDF.map(d => d["UDI-a (%)"]),
-                    colorscale: "Viridis",
-                    colorbar: { title: { text: 'UDI-a (%)' } }
-                  },
-                  showscale: true
+              data={[{
+                name: 'Search Space',
+                type: "scatter3d",
+                mode: "markers",
+                x: dataDF.map(d => d["Cooling Load (kWh)"]),
+                y: dataDF.map(d => d["Heating Load (kWh)"]),
+                z: dataDF.map(d => d["Artificial Lighting Load (kWh)"]),
+                customdata: dataDF.map(d => d["UDI-a (%)"]),
+                hovertemplate: hoverTemplate,
+                marker: {
+                  symbol: 'square',
+                  color: dataDF.map(d => d["UDI-a (%)"]),
+                  colorscale: "Viridis",
+                  colorbar: { title: { text: 'UDI-a (%)' } }
                 },
-                {
-                  name: 'Pareto Front',
-                  type: "scatter3d",
-                  mode: "markers",
-                  x: dataPF.map(d => d["Cooling Load (kWh)"]),
-                  y: dataPF.map(d => d["Heating Load (kWh)"]),
-                  z: dataPF.map(d => d["Artificial Lighting Load (kWh)"]),
-                  customdata: dataPF.map(d => d["UDI-a (%)"]),
-                  hovertemplate: hoverTemplate,
-                  marker: {
-                    symbol: 'cross',
-                    color: dataPF.map(d => d["UDI-a (%)"]),
-                    colorscale: "Viridis"
-                  },
-                  showscale: false
-                }
-              ]}
+                showscale: true
+              },
+              {
+                name: 'Pareto Front',
+                type: "scatter3d",
+                mode: "markers",
+                x: dataPF.map(d => d["Cooling Load (kWh)"]),
+                y: dataPF.map(d => d["Heating Load (kWh)"]),
+                z: dataPF.map(d => d["Artificial Lighting Load (kWh)"]),
+                customdata: dataPF.map(d => d["UDI-a (%)"]),
+                hovertemplate: hoverTemplate,
+                marker: {
+                  symbol: 'cross',
+                  color: dataPF.map(d => d["UDI-a (%)"]),
+                  colorscale: "Viridis"
+                },
+                showscale: false
+              }]}
               layout={{
                 autosize: true,
                 paper_bgcolor: 'rgba(0,0,0,0)',

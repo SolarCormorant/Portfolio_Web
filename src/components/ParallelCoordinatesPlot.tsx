@@ -271,97 +271,101 @@ const ParallelCoordinatesPlot: React.FC = () => {
   if(error) return <div className="p-4 text-red-600 font-jost">Error: {error}</div>;
 
   return (
-    <div className="w-full space-y-4 font-jost">
-      {/* Load Jost font */}
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500;600;700&display=swap');
-        .font-jost { font-family: 'Jost', sans-serif; }
-      `}</style>
-      
-      {/* Configuration Controls */}
-      <div className="bg-gray-50 p-6 rounded-lg shadow-sm">
-        <h3 className="text-xl font-semibold mb-4 text-gray-800">Building Configuration</h3>
-        <div className="flex flex-row flex-nowrap gap-4 items-end">
-          <div className="w-32">
-            <label className="block text-sm font-medium mb-2 text-gray-700">Width</label>
-            <select 
-              value={selected.width}
-              onChange={(e) => setSelected({...selected, width: e.target.value})}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg font-jost bg-white shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
-            >
-              {widths.map(w => <option key={w} value={w}>{w}m</option>)}
-            </select>
-          </div>
+    <BrowserOnly fallback={<div>Loading...</div>}>
+      {() => (
+        <div className="w-full space-y-4 font-jost">
+          {/* Load Jost font */}
+          <style>{`
+            @import url('https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500;600;700&display=swap');
+            .font-jost { font-family: 'Jost', sans-serif; }
+          `}</style>
           
-          <div className="w-32">
-            <label className="block text-sm font-medium mb-2 text-gray-700">Length</label>
-            <select 
-              value={selected.length}
-              onChange={(e) => setSelected({...selected, length: e.target.value})}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg font-jost bg-white shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
-            >
-              {lengths.map(l => <option key={l} value={l}>{l}m</option>)}
-            </select>
-          </div>
-          
-          <div className="w-32">
-            <label className="block text-sm font-medium mb-2 text-gray-700">Height</label>
-            <select 
-              value={selected.height}
-              onChange={(e) => setSelected({...selected, height: e.target.value})}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg font-jost bg-white shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
-            >
-              {heights.map(h => <option key={h} value={h}>{h}m</option>)}
-            </select>
-          </div>
-          
-          <div className="w-32">
-            <label className="block text-sm font-medium mb-2 text-gray-700">WWR</label>
-            <select 
-              value={selected.wwr}
-              onChange={(e) => setSelected({...selected, wwr: e.target.value})}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg font-jost bg-white shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
-            >
-              {wwrs.map(w => <option key={w} value={w}>{w === '05' ? '0.5' : '0.9'}</option>)}
-            </select>
+          {/* Configuration Controls */}
+          <div className="bg-gray-50 p-6 rounded-lg shadow-sm">
+            <h3 className="text-xl font-semibold mb-4 text-gray-800">Building Configuration</h3>
+            <div className="flex flex-row flex-nowrap gap-4 items-end">
+              <div className="w-32">
+                <label className="block text-sm font-medium mb-2 text-gray-700">Width</label>
+                <select 
+                  value={selected.width}
+                  onChange={(e) => setSelected({...selected, width: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg font-jost bg-white shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+                >
+                  {widths.map(w => <option key={w} value={w}>{w}m</option>)}
+                </select>
+              </div>
+              
+              <div className="w-32">
+                <label className="block text-sm font-medium mb-2 text-gray-700">Length</label>
+                <select 
+                  value={selected.length}
+                  onChange={(e) => setSelected({...selected, length: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg font-jost bg-white shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+                >
+                  {lengths.map(l => <option key={l} value={l}>{l}m</option>)}
+                </select>
+              </div>
+              
+              <div className="w-32">
+                <label className="block text-sm font-medium mb-2 text-gray-700">Height</label>
+                <select 
+                  value={selected.height}
+                  onChange={(e) => setSelected({...selected, height: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg font-jost bg-white shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+                >
+                  {heights.map(h => <option key={h} value={h}>{h}m</option>)}
+                </select>
+              </div>
+              
+              <div className="w-32">
+                <label className="block text-sm font-medium mb-2 text-gray-700">WWR</label>
+                <select 
+                  value={selected.wwr}
+                  onChange={(e) => setSelected({...selected, wwr: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg font-jost bg-white shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+                >
+                  {wwrs.map(w => <option key={w} value={w}>{w === '05' ? '0.5' : '0.9'}</option>)}
+                </select>
+              </div>
+
+              <div className="w-40">
+                <label className="block text-sm font-medium mb-2 text-gray-700">Dataset</label>
+                <select 
+                  value={selected.dataset}
+                  onChange={(e) => setSelected({...selected, dataset: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg font-jost bg-white shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+                >
+                  {datasets.map(d => <option key={d} value={d}>{d}</option>)}
+                </select>
+              </div>
+            </div>
           </div>
 
-          <div className="w-40">
-            <label className="block text-sm font-medium mb-2 text-gray-700">Dataset</label>
-            <select 
-              value={selected.dataset}
-              onChange={(e) => setSelected({...selected, dataset: e.target.value})}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg font-jost bg-white shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
-            >
-              {datasets.map(d => <option key={d} value={d}>{d}</option>)}
-            </select>
+          {/* Plot Container */}
+          <div className="bg-white border border-gray-200 rounded-lg p-4">
+            <div id="parallel-plot" style={{ width: '100%', height: '600px' }}></div>
+          </div>
+
+          {/* Legend */}
+          <div className="bg-gray-50 p-4 rounded-lg shadow-sm">
+            <h4 className="font-semibold mb-3 text-gray-800">Dataset Information</h4>
+            <div className="flex flex-wrap gap-6 text-sm">
+              <div className="flex items-center gap-3">
+                <div className="w-4 h-4 bg-gradient-to-r from-blue-600 to-purple-600 rounded shadow-sm"></div>
+                <span className="text-gray-700">
+                  {selected.dataset === "Search Space" ? `Search Space (${dataDF.length} points)` :
+                   selected.dataset === "Pareto Front" ? `Pareto Front (${dataPF.length} points)` :
+                   `Combined Data (${dataDF.length + dataPF.length} points)`}
+                </span>
+              </div>
+              <div className="text-gray-600">
+                <span>Colors represent Excel row indices using Viridis color scale</span>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-
-      {/* Plot Container */}
-      <div className="bg-white border border-gray-200 rounded-lg p-4">
-        <div id="parallel-plot" style={{ width: '100%', height: '600px' }}></div>
-      </div>
-
-      {/* Legend */}
-      <div className="bg-gray-50 p-4 rounded-lg shadow-sm">
-        <h4 className="font-semibold mb-3 text-gray-800">Dataset Information</h4>
-        <div className="flex flex-wrap gap-6 text-sm">
-          <div className="flex items-center gap-3">
-            <div className="w-4 h-4 bg-gradient-to-r from-blue-600 to-purple-600 rounded shadow-sm"></div>
-            <span className="text-gray-700">
-              {selected.dataset === "Search Space" ? `Search Space (${dataDF.length} points)` :
-               selected.dataset === "Pareto Front" ? `Pareto Front (${dataPF.length} points)` :
-               `Combined Data (${dataDF.length + dataPF.length} points)`}
-            </span>
-          </div>
-          <div className="text-gray-600">
-            <span>Colors represent Excel row indices using Viridis color scale</span>
-          </div>
-        </div>
-      </div>
-    </div>
+      )}
+    </BrowserOnly>
   );
 };
 
