@@ -26,7 +26,7 @@ const App: FC = () => {
 
   // Plotly'yi sadece tarayıcıda yükle (SSR sırasında çalışmaz)
   useEffect(() => {
-    if (typeof window === 'undefined') return; // güvenlik
+    if (typeof window === 'undefined') return; // SSR guard
     if (window.Plotly) setPlotlyLoaded(true);
     else {
       const script = document.createElement('script');

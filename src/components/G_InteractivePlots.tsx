@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import Plot from "react-plotly.js";
 import type { PlotSelectionEvent } from 'plotly.js';
 import * as XLSX from "xlsx";
@@ -17,12 +17,12 @@ interface DataRow {
   [key: string]: any;
 }
 
-// Tüm grafikler için tek bir bileşen
 const InteractivePlots: React.FC = () => {
   const [dataDF, setDataDF] = useState<DataRow[]>([]);
   const [dataPF, setDataPF] = useState<DataRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedIndices, setSelectedIndices] = useState<number[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
   // Dropdown seçenekleri
   const widths = ["5"];
@@ -63,10 +63,12 @@ const InteractivePlots: React.FC = () => {
         setDataDF(dfJson);
         setDataPF(pfJson);
         setSelectedIndices([]);
+        setError(null);
       } catch (error) {
         console.error("Excel dosyası yüklenirken hata oluştu:", error);
         setDataDF([]);
         setDataPF([]);
+        setError('Veri yüklenirken bir hata oluştu.');
       } finally {
         setLoading(false);
       }
@@ -94,7 +96,6 @@ const InteractivePlots: React.FC = () => {
   };
 
   // --- GRAFİK VERİLERİNİ HAZIRLAMA ---
-
   const transparentLayout = {
     paper_bgcolor: 'rgba(0,0,0,0)',
     plot_bgcolor: 'rgba(0,0,0,0)',
@@ -117,7 +118,7 @@ const InteractivePlots: React.FC = () => {
       color: dataDF.map(d => d['UDI-a (%)']),
       colorscale: 'tealrose',
       showscale: true,
-      colorbar: { title: 'UDI-a (%)' }
+      colorbar: { title: 'UDI-a (%)' },
     },
     dimensions: parcoordsDimensions,
   }];
@@ -128,8 +129,8 @@ const InteractivePlots: React.FC = () => {
     const sizes = data.map((_, index) => isSelectionActive ? (selectedIndices.includes(index) ? 10 : 3) : 6);
     const opacities = data.map((_, index) => isSelectionActive ? (selectedIndices.includes(index) ? 1.0 : 0.2) : 0.8);
     const lineStyles = data.map((_, index) => ({
-        color: isSelectionActive && selectedIndices.includes(index) ? 'black' : 'rgba(0,0,0,0)',
-        width: isSelectionActive && selectedIndices.includes(index) ? 2 : 0,
+      color: isSelectionActive && selectedIndices.includes(index) ? 'black' : 'rgba(0,0,0,0)',
+      width: isSelectionActive && selectedIndices.includes(index) ? 2 : 0,
     }));
     return { sizes, opacities, lineStyles };
   };
@@ -157,8 +158,8 @@ const InteractivePlots: React.FC = () => {
         size: dfMarkerStyles.sizes,
         opacity: dfMarkerStyles.opacities,
         line: { // Seçilenlere çerçeve ekle
-            color: dfMarkerStyles.lineStyles.map(l => l.color),
-            width: dfMarkerStyles.lineStyles.map(l => l.width),
+          color: dfMarkerStyles.lineStyles.map(l => l.color),
+          width: dfMarkerStyles.lineStyles.map(l => l.width),
         }
       },
       showscale: true,
@@ -185,48 +186,48 @@ const InteractivePlots: React.FC = () => {
   const scatter2dTraces = [];
   
   otherOutputs.forEach((yAxis, index) => {
-      // Tüm veri seti için iz
-      scatter2dTraces.push({
-          x: dataDF.map(d => d[selected.output]),
-          y: dataDF.map(d => d[yAxis]),
-          xaxis: `x${index + 1}`,
-          yaxis: `y${index + 1}`,
-          mode: 'markers',
-          type: 'scatter',
-          name: `Tüm Veri Seti`,
-          marker: { 
-              color: 'blue', 
-              size: dfMarkerStyles.sizes, 
-              opacity: dfMarkerStyles.opacities,
-              line: {
-                  color: dfMarkerStyles.lineStyles.map(l => l.color),
-                  width: dfMarkerStyles.lineStyles.map(l => l.width),
-              }
-          }
-      });
-      // Pareto seti için iz
-      scatter2dTraces.push({
-          x: dataPF.map(d => d[selected.output]),
-          y: dataPF.map(d => d[yAxis]),
-          xaxis: `x${index + 1}`, // Aynı alt grafikte göster
-          yaxis: `y${index + 1}`,
-          mode: 'markers',
-          type: 'scatter',
-          name: `Pareto Seti`,
-          marker: { color: 'red', size: 6 }
-      });
+    // Tüm veri seti için iz
+    scatter2dTraces.push({
+      x: dataDF.map(d => d[selected.output]),
+      y: dataDF.map(d => d[yAxis]),
+      xaxis: `x${index + 1}`,
+      yaxis: `y${index + 1}`,
+      mode: 'markers',
+      type: 'scatter',
+      name: `Tüm Veri Seti`,
+      marker: { 
+        color: 'blue', 
+        size: dfMarkerStyles.sizes, 
+        opacity: dfMarkerStyles.opacities,
+        line: {
+          color: dfMarkerStyles.lineStyles.map(l => l.color),
+          width: dfMarkerStyles.lineStyles.map(l => l.width),
+        }
+      }
+    });
+    // Pareto seti için iz
+    scatter2dTraces.push({
+      x: dataPF.map(d => d[selected.output]),
+      y: dataPF.map(d => d[yAxis]),
+      xaxis: `x${index + 1}`, // Aynı alt grafikte göster
+      yaxis: `y${index + 1}`,
+      mode: 'markers',
+      type: 'scatter',
+      name: `Pareto Seti`,
+      marker: { color: 'red', size: 6 }
+    });
   });
   
   const scatter2dLayout = {
-      ...transparentLayout,
-      title: `<b>${selected.output}</b> ve Diğer Metriklerin Karşılaştırması`,
-      grid: { rows: 1, columns: 3, pattern: 'independent' }, // Tek satırda 3 grafik
-      showlegend: true,
-      legend: { orientation: 'h', x: 0.5, xanchor: 'center', y: -0.25 }
+    ...transparentLayout,
+    title: `<b>${selected.output}</b> ve Diğer Metriklerin Karşılaştırması`,
+    grid: { rows: 1, columns: 3, pattern: 'independent' }, // Tek satırda 3 grafik
+    showlegend: true,
+    legend: { orientation: 'h', x: 0.5, xanchor: 'center', y: -0.25 }
   };
   otherOutputs.forEach((yAxis, i) => {
-      scatter2dLayout[`xaxis${i + 1}`] = { title: selected.output, ...transparentLayout };
-      scatter2dLayout[`yaxis${i + 1}`] = { title: yAxis, ...transparentLayout };
+    scatter2dLayout[`xaxis${i + 1}`] = { title: selected.output, ...transparentLayout };
+    scatter2dLayout[`yaxis${i + 1}`] = { title: yAxis, ...transparentLayout };
   });
 
   if (loading) return <p>Grafikler yükleniyor...</p>;

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import * as Plotly from "plotly.js-dist";
 import * as XLSX from "xlsx";
 
@@ -8,7 +8,7 @@ interface DataRow {
 }
 
 // Column headers - these will be used as axis labels
-const col_names = [
+const colNames = [
   "x", "y", "z", "WWR",
   "Interior Shelf", "Interior Shelf Rotation Angle",
   "Interior Shelf Height (m)", "Interior Shelf Depth (m)",
@@ -38,14 +38,14 @@ const ParallelCoordinatesPlot: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [dataDF, setDataDF] = useState<DataRow[]>([]);
   const [dataPF, setDataPF] = useState<DataRow[]>([]);
-  
+
   // Configuration options
   const widths = ["5"];
-  const lengths = ["5", "7", "9"]; 
+  const lengths = ["5", "7", "9"];
   const heights = ["3"];
   const wwrs = ["05", "09"];
   const datasets = ["Search Space", "Pareto Front", "Both"];
-  
+
   const [selected, setSelected] = useState({ 
     width: "5", 
     length: "5", 
@@ -74,7 +74,7 @@ const ParallelCoordinatesPlot: React.FC = () => {
   useEffect(() => {
     setLoading(true); 
     setError(null);
-    
+
     fetch(`/excel/${filename}`)
       .then(res => { 
         if(!res.ok) throw new Error(`HTTP ${res.status}`); 
@@ -86,17 +86,17 @@ const ParallelCoordinatesPlot: React.FC = () => {
         
         // Read both sheets using the column names as headers
         const sheet1Data = XLSX.utils.sheet_to_json<DataRow>(wb.Sheets[s1], {
-          header: col_names,
+          header: colNames,
           range: 0,
           defval: null
         });
-        
+
         const sheet2Data = XLSX.utils.sheet_to_json<DataRow>(wb.Sheets[s2], {
-          header: col_names,
+          header: colNames,
           range: 0,
           defval: null
         });
-        
+
         setDataDF(sheet1Data);
         setDataPF(sheet2Data);
       })
@@ -117,7 +117,7 @@ const ParallelCoordinatesPlot: React.FC = () => {
     if (!plotElement) return;
 
     // Create dimensions with proper labels and automatic ticks
-    const dimensions = col_names.slice(4).map((label, dimIndex) => {
+    const dimensions = colNames.slice(4).map((label, dimIndex) => {
       const values = merged.map(row => {
         const val = row[label];
         return typeof val === 'number' ? val : Number(val) || 0;

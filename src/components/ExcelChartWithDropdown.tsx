@@ -3,26 +3,12 @@ import Plot from 'react-plotly.js';
 import * as XLSX from 'xlsx';
 import BrowserOnly from "@docusaurus/BrowserOnly";
 
+// Excel dosyasındaki sütun adları
 const col_names = [
-  "x",
-  "y",
-  "z",
-  "WWR",
-  "Interior Shelf",
-  "Interior Shelf Rotation Angle",
-  "Interior Shelf Height (m)",
-  "Interior Shelf Depth (m)",
-  "Exterior Shelf",
-  "Exterior Shelf Rotation Angle",
-  "Exterior Shelf Height (m)",
-  "Exterior Shelf Depth (m)",
-  "Cooling Load (kWh)",
-  "Heating Load (kWh)",
-  "UDI-a (%)",
-  "Artificial Lighting Load (kWh)",
-  "UDI-a (%)_2",
+  "x", "y", "z", "WWR", "Interior Shelf", "Interior Shelf Rotation Angle", "Interior Shelf Height (m)", 
+  "Interior Shelf Depth (m)", "Exterior Shelf", "Exterior Shelf Rotation Angle", "Exterior Shelf Height (m)", 
+  "Exterior Shelf Depth (m)", "Cooling Load (kWh)", "Heating Load (kWh)", "UDI-a (%)", "Artificial Lighting Load (kWh)", "UDI-a (%)_2",
 ];
-
 
 const widths = ['5'];
 const lengths = ['5', '7', '9'];
@@ -36,6 +22,8 @@ const ExcelChartWithDropdown: React.FC = () => {
   const [selectedWWR, setSelectedWWR] = useState('09');
   const [plotData2D, setPlotData2D] = useState<any[]>([]);
   const [rawJson, setRawJson] = useState<any[]>([]); // 3D plot için
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const buildFilename = () =>
     `${selectedWidth}x${selectedLength}x${selectedHeight}x${selectedWWR}.xls`;
@@ -43,32 +31,32 @@ const ExcelChartWithDropdown: React.FC = () => {
   const fetchAndParseExcel = async () => {
     const filename = buildFilename();
     try {
+      setLoading(true);
       const res = await fetch(`/excel/${filename}`);
+      if (!res.ok) throw new Error("Excel dosyası bulunamadı.");
       const arrayBuffer = await res.arrayBuffer();
       const workbook = XLSX.read(arrayBuffer, { type: 'array' });
       const sheetName = workbook.SheetNames[0];
       const sheet = workbook.Sheets[sheetName];
-    const json = XLSX.utils.sheet_to_json(sheet, { header: col_names, range: 0 });
-    setRawJson(json);
+      const json = XLSX.utils.sheet_to_json(sheet, { header: col_names, range: 1 });
+
+      setRawJson(json);
 
       console.log('Example row from Excel:', json[0]);
 
-      const x = json.map((row: any) => row.X);
-      const y = json.map((row: any) => row.Y);
+      const x = json.map((row: any) => row['Cooling Load (kWh)']);
+      const y = json.map((row: any) => row['Heating Load (kWh)']);
 
-      setPlotData2D([
-        {
-          x,
-          y,
-          type: 'scatter',
-          mode: 'lines+markers',
-          name: filename,
-        },
-      ]);
+      setPlotData2D([{
+        x, y, type: 'scatter', mode: 'lines+markers', name: filename,
+      }]);
     } catch (err) {
       console.error('Dosya yüklenemedi:', filename, err);
+      setError('Veri yüklenirken bir hata oluştu.');
       setRawJson([]);
       setPlotData2D([]);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -76,10 +64,9 @@ const ExcelChartWithDropdown: React.FC = () => {
     fetchAndParseExcel();
   }, [selectedWidth, selectedLength, selectedHeight, selectedWWR]);
 
-return (<BrowserOnly fallback={<div>Loading 3D Scatter...</div>}>
+  return (
+    <BrowserOnly fallback={<div>Loading 3D Scatter...</div>}>
       {() => {
-        const Plot = require("react-plotly.js").default;
-
         return (
           <div>
             {/* Dropdownlar */}
@@ -118,48 +105,54 @@ return (<BrowserOnly fallback={<div>Loading 3D Scatter...</div>}>
               </label>
             </div>
 
-            {/* 2D Grafik */}
-            <Plot
-              data={plotData2D}
-              layout={{ title: `2D Plot for ${buildFilename()}` }}
-              style={{ width: '100%', height: '400px' }}
-            />
+            {loading ? (
+              <p>Loading...</p>
+            ) : error ? (
+              <p style={{ color: 'red' }}>{error}</p>
+            ) : (
+              <>
+                {/* 2D Grafik */}
+                <Plot
+                  data={plotData2D}
+                  layout={{ title: `2D Plot for ${buildFilename()}` }}
+                  style={{ width: '100%', height: '400px' }}
+                />
 
-            {/* 3D Grafik */}
-            {rawJson.length > 0 && (
-              <Plot
-                data={[
-                  {
-                    type: 'scatter3d',
-                    mode: 'markers',
-                    x: rawJson.map((row: any) => row['Cooling Load (kWh)']),
-                    y: rawJson.map((row: any) => row['Heating Load (kWh)']),
-                    z: rawJson.map((row: any) => row['Artificial Lighting Load (kWh)']),
-                    customdata: rawJson.map((row: any) => row['UDI-a (%)']),
-                    hovertemplate:
-                      'Cooling Load (kWh): %{x}<br>' +
-                      'Heating Load (kWh): %{y}<br>' +
-                      'Artificial Lighting Load (kWh): %{z}<br>' +
-                      'UDI-a: %{customdata}',
-                    marker: {
-                      size: 5,
-                      color: rawJson.map((row: any) => row['UDI-a (%)']),
-                      colorscale: 'YlGnBu',
-                      colorbar: { title: 'UDI-a (%)' },
-                    },
-                  },
-                ]}
-                layout={{
-                  title: '3D Scatter: Cooling / Heating / Lighting vs UDI-a',
-                  scene: {
-                    xaxis: { title: 'Cooling Load (kWh)' },
-                    yaxis: { title: 'Heating Load (kWh)' },
-                    zaxis: { title: 'Artificial Lighting Load (kWh)' },
-                  },
-                  margin: { l: 0, r: 0, b: 0, t: 40 },
-                }}
-                style={{ width: '100%', height: '600px', marginTop: '2rem' }}
-              />
+                {/* 3D Grafik */}
+                {rawJson.length > 0 && (
+                  <Plot
+                    data={[{
+                      type: 'scatter3d',
+                      mode: 'markers',
+                      x: rawJson.map((row: any) => row['Cooling Load (kWh)']),
+                      y: rawJson.map((row: any) => row['Heating Load (kWh)']),
+                      z: rawJson.map((row: any) => row['Artificial Lighting Load (kWh)']),
+                      customdata: rawJson.map((row: any) => row['UDI-a (%)']),
+                      hovertemplate:
+                        'Cooling Load (kWh): %{x}<br>' +
+                        'Heating Load (kWh): %{y}<br>' +
+                        'Artificial Lighting Load (kWh): %{z}<br>' +
+                        'UDI-a: %{customdata}',
+                      marker: {
+                        size: 5,
+                        color: rawJson.map((row: any) => row['UDI-a (%)']),
+                        colorscale: 'YlGnBu',
+                        colorbar: { title: 'UDI-a (%)' },
+                      },
+                    }]}
+                    layout={{
+                      title: '3D Scatter: Cooling / Heating / Lighting vs UDI-a',
+                      scene: {
+                        xaxis: { title: 'Cooling Load (kWh)' },
+                        yaxis: { title: 'Heating Load (kWh)' },
+                        zaxis: { title: 'Artificial Lighting Load (kWh)' },
+                      },
+                      margin: { l: 0, r: 0, b: 0, t: 40 },
+                    }}
+                    style={{ width: '100%', height: '600px', marginTop: '2rem' }}
+                  />
+                )}
+              </>
             )}
           </div>
         );
@@ -167,4 +160,5 @@ return (<BrowserOnly fallback={<div>Loading 3D Scatter...</div>}>
     </BrowserOnly>
   );
 };
+
 export default ExcelChartWithDropdown;

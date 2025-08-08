@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
-import Plot from "react-plotly.js";
+import BrowserOnly from "@docusaurus/BrowserOnly";
 import * as XLSX from "xlsx";
+import { Plot } from "react-plotly.js";
 
 // Excel dosyasındaki sütun adları
 const colNames = [
@@ -31,6 +32,7 @@ const Scatter3D: React.FC = () => {
   const [dataDF, setDataDF] = useState<DataRow[]>([]);
   const [dataPF, setDataPF] = useState<DataRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const widths = ["5"];
   const lengths = ["5", "7", "9"];
@@ -60,6 +62,7 @@ const Scatter3D: React.FC = () => {
       setLoading(true);
       try {
         const res = await fetch(`/excel/${filename}`);
+        if (!res.ok) throw new Error("Excel dosyası bulunamadı.");
         const ab = await res.arrayBuffer();
         const wb = XLSX.read(ab, { type: "array" });
 
@@ -77,13 +80,13 @@ const Scatter3D: React.FC = () => {
         setDataDF(dfJson);
         setDataPF(pfJson);
       } catch (error) {
-        console.error("Error loading Excel:", error);
-        setDataDF([]);
-        setDataPF([]);
+        console.error("Hata oluştu:", error);
+        setError("Veri yüklenirken bir hata oluştu.");
       } finally {
         setLoading(false);
       }
     };
+
     fetchData();
   }, [filename]);
 
@@ -105,94 +108,100 @@ const Scatter3D: React.FC = () => {
   const hasData = dataDF.length > 0 || dataPF.length > 0;
 
   return (
-    <div>
-      <div style={{ display: "flex", gap: "1rem", marginBottom: "1rem", alignItems: 'center' }}>
+    <BrowserOnly fallback={<div>Loading 3D Scatter...</div>}>
+      {() => (
         <div>
-          <label style={{ marginRight: '0.5rem', fontFamily: 'Jost, sans-serif' }}>Room Width:</label>
-          <select style={selectStyle} value={selected.width} onChange={e => handleChange("width", e.target.value)}>
-            {widths.map(w => <option key={w} value={w}>{w} m</option>)}
-          </select>
-        </div>
-        <div>
-          <label style={{ marginRight: '0.5rem', fontFamily: 'Jost, sans-serif' }}>Room Depth:</label>
-          <select style={selectStyle} value={selected.length} onChange={e => handleChange("length", e.target.value)}>
-            {lengths.map(l => <option key={l} value={l}>{l} m</option>)}
-          </select>
-        </div>
-        <div>
-          <label style={{ marginRight: '0.5rem', fontFamily: 'Jost, sans-serif' }}>Room Height:</label>
-          <select style={selectStyle} value={selected.height} onChange={e => handleChange("height", e.target.value)}>
-            {heights.map(h => <option key={h} value={h}>{h} m</option>)}
-          </select>
-        </div>
-        <div>
-          <label style={{ marginRight: '0.5rem', fontFamily: 'Jost, sans-serif' }}>WWR:</label>
-          <select style={selectStyle} value={selected.wwr} onChange={e => handleChange("wwr", e.target.value)}>
-            {wwrs.map(w => <option key={w} value={w}>{w}</option>)}
-          </select>
-        </div>
-      </div>
+          <div style={{ display: "flex", gap: "1rem", marginBottom: "1rem", alignItems: 'center' }}>
+            <div>
+              <label style={{ marginRight: '0.5rem', fontFamily: 'Jost, sans-serif' }}>Room Width:</label>
+              <select style={selectStyle} value={selected.width} onChange={e => handleChange("width", e.target.value)}>
+                {widths.map(w => <option key={w} value={w}>{w} m</option>)}
+              </select>
+            </div>
+            <div>
+              <label style={{ marginRight: '0.5rem', fontFamily: 'Jost, sans-serif' }}>Room Depth:</label>
+              <select style={selectStyle} value={selected.length} onChange={e => handleChange("length", e.target.value)}>
+                {lengths.map(l => <option key={l} value={l}>{l} m</option>)}
+              </select>
+            </div>
+            <div>
+              <label style={{ marginRight: '0.5rem', fontFamily: 'Jost, sans-serif' }}>Room Height:</label>
+              <select style={selectStyle} value={selected.height} onChange={e => handleChange("height", e.target.value)}>
+                {heights.map(h => <option key={h} value={h}>{h} m</option>)}
+              </select>
+            </div>
+            <div>
+              <label style={{ marginRight: '0.5rem', fontFamily: 'Jost, sans-serif' }}>WWR:</label>
+              <select style={selectStyle} value={selected.wwr} onChange={e => handleChange("wwr", e.target.value)}>
+                {wwrs.map(w => <option key={w} value={w}>{w}</option>)}
+              </select>
+            </div>
+          </div>
 
-      {loading ? (
-        <p>Loading...</p>
-      ) : hasData ? (
-        <Plot
-          useResizeHandler
-          data={[
-            {
-              name: 'Search Space',
-              type: "scatter3d",
-              mode: "markers",
-              x: dataDF.map(d => d["Cooling Load (kWh)"]),
-              y: dataDF.map(d => d["Heating Load (kWh)"]),
-              z: dataDF.map(d => d["Artificial Lighting Load (kWh)"]),
-              customdata: dataDF.map(d => d["UDI-a (%)"]),
-              hovertemplate: hoverTemplate,
-              marker: {
-                symbol: 'square',
-                color: dataDF.map(d => d["UDI-a (%)"]),
-                colorscale: "Viridis",
-                colorbar: { title: { text: 'UDI-a (%)' } }
-              },
-              showscale: true
-            },
-            {
-              name: 'Pareto Front',
-              type: "scatter3d",
-              mode: "markers",
-              x: dataPF.map(d => d["Cooling Load (kWh)"]),
-              y: dataPF.map(d => d["Heating Load (kWh)"]),
-              z: dataPF.map(d => d["Artificial Lighting Load (kWh)"]),
-              customdata: dataPF.map(d => d["UDI-a (%)"]),
-              hovertemplate: hoverTemplate,
-              marker: {
-                symbol: 'cross',
-                color: dataPF.map(d => d["UDI-a (%)"]),
-                colorscale: "Viridis"
-              },
-              showscale: false
-            }
-          ]}
-          layout={{
-            autosize: true,
-            paper_bgcolor: 'rgba(0,0,0,0)',
-            plot_bgcolor: 'rgba(0,0,0,0)',
-            margin: { t: 30, l: 0, r: 0, b: 0 },
-            scene: {
-              bgcolor: 'rgba(0,0,0,0)',
-              xaxis: { title: { text: "Cooling Load (kWh)", font: { color: '#444' } }, ...(xRange && { range: xRange, autorange: false }) },
-              yaxis: { title: { text: "Heating Load (kWh)", font: { color: '#444' } }, ...(yRange && { range: yRange, autorange: false }) },
-              zaxis: { title: { text: "Lighting Load (kWh)", font: { color: '#444' } }, ...(zRange && { range: zRange, autorange: false }) },
-            },
-            legend: { orientation: 'h', x: 0.5, xanchor: 'center', y: 1.05, yanchor: 'bottom' }
-          }}
-          config={{ responsive: true, displayModeBar: false, displaylogo: false }}
-          style={{ width: "100%", height: "600px" }}
-        />
-      ) : (
-        <p>No data available</p>
+          {loading ? (
+            <p>Loading...</p>
+          ) : error ? (
+            <p style={{ color: 'red' }}>{error}</p>
+          ) : hasData ? (
+            <Plot
+              useResizeHandler
+              data={[
+                {
+                  name: 'Search Space',
+                  type: "scatter3d",
+                  mode: "markers",
+                  x: dataDF.map(d => d["Cooling Load (kWh)"]),
+                  y: dataDF.map(d => d["Heating Load (kWh)"]),
+                  z: dataDF.map(d => d["Artificial Lighting Load (kWh)"]),
+                  customdata: dataDF.map(d => d["UDI-a (%)"]),
+                  hovertemplate: hoverTemplate,
+                  marker: {
+                    symbol: 'square',
+                    color: dataDF.map(d => d["UDI-a (%)"]),
+                    colorscale: "Viridis",
+                    colorbar: { title: { text: 'UDI-a (%)' } }
+                  },
+                  showscale: true
+                },
+                {
+                  name: 'Pareto Front',
+                  type: "scatter3d",
+                  mode: "markers",
+                  x: dataPF.map(d => d["Cooling Load (kWh)"]),
+                  y: dataPF.map(d => d["Heating Load (kWh)"]),
+                  z: dataPF.map(d => d["Artificial Lighting Load (kWh)"]),
+                  customdata: dataPF.map(d => d["UDI-a (%)"]),
+                  hovertemplate: hoverTemplate,
+                  marker: {
+                    symbol: 'cross',
+                    color: dataPF.map(d => d["UDI-a (%)"]),
+                    colorscale: "Viridis"
+                  },
+                  showscale: false
+                }
+              ]}
+              layout={{
+                autosize: true,
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                margin: { t: 30, l: 0, r: 0, b: 0 },
+                scene: {
+                  bgcolor: 'rgba(0,0,0,0)',
+                  xaxis: { title: { text: "Cooling Load (kWh)", font: { color: '#444' } }, ...(xRange && { range: xRange, autorange: false }) },
+                  yaxis: { title: { text: "Heating Load (kWh)", font: { color: '#444' } }, ...(yRange && { range: yRange, autorange: false }) },
+                  zaxis: { title: { text: "Lighting Load (kWh)", font: { color: '#444' } }, ...(zRange && { range: zRange, autorange: false }) },
+                },
+                legend: { orientation: 'h', x: 0.5, xanchor: 'center', y: 1.05, yanchor: 'bottom' }
+              }}
+              config={{ responsive: true, displayModeBar: false, displaylogo: false }}
+              style={{ width: "100%", height: "600px" }}
+            />
+          ) : (
+            <p>No data available</p>
+          )}
+        </div>
       )}
-    </div>
+    </BrowserOnly>
   );
 };
 
