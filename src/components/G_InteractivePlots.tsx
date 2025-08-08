@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import Plot from "react-plotly.js";
-import type { PlotSelectionEvent } from 'plotly.js';
+import BrowserOnly from '@docusaurus/BrowserOnly'; // Tarayıcıya özel kütüphane
+import * as Plotly from "plotly.js-dist";
 import * as XLSX from "xlsx";
 
 // Excel dosyasındaki sütun adları
@@ -49,8 +49,11 @@ const InteractivePlots: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
+      setError(null); // Hata mesajını sıfırlayın
       try {
         const response = await fetch(`/excel/${filename}`);
+        if (!response.ok) throw new Error('Veri yüklenemedi.');
+        
         const arrayBuffer = await response.arrayBuffer();
         const workbook = XLSX.read(arrayBuffer, { type: "array" });
 
@@ -63,12 +66,11 @@ const InteractivePlots: React.FC = () => {
         setDataDF(dfJson);
         setDataPF(pfJson);
         setSelectedIndices([]);
-        setError(null);
       } catch (error) {
         console.error("Excel dosyası yüklenirken hata oluştu:", error);
+        setError('Veri yüklenirken bir hata oluştu.');
         setDataDF([]);
         setDataPF([]);
-        setError('Veri yüklenirken bir hata oluştu.');
       } finally {
         setLoading(false);
       }
@@ -139,7 +141,7 @@ const InteractivePlots: React.FC = () => {
 
   // 2. 3D Dağılım Grafiği (DİNAMİK İŞARETLEYİCİLERLE)
   const hoverTemplate = "Cooling: %{x} kWh<br>Heating: %{y} kWh<br>Light: %{z} kWh<br>UDI-a: %{customdata}%";
-  
+
   const scatter3dData = [
     {
       name: 'Search Space',
@@ -234,69 +236,73 @@ const InteractivePlots: React.FC = () => {
   if (!dataDF.length || !dataPF.length) return <p>Seçilen parametreler için veri bulunamadı. Lütfen {filename} dosyasının `static/excel` klasöründe olduğundan emin olun.</p>;
 
   return (
-    <div>
-      {/* Kontrol Menüsü */}
-      <div style={{ display: "flex", flexWrap: 'wrap', gap: "1rem", marginBottom: "2rem", alignItems: 'center' }}>
-        <select style={selectStyle} value={selected.width} onChange={e => setSelected(p => ({ ...p, width: e.target.value }))}>{widths.map(w => <option key={w} value={w}>Genişlik: {w} m</option>)}</select>
-        <select style={selectStyle} value={selected.length} onChange={e => setSelected(p => ({ ...p, length: e.target.value }))}>{lengths.map(l => <option key={l} value={l}>Derinlik: {l} m</option>)}</select>
-        <select style={selectStyle} value={selected.height} onChange={e => setSelected(p => ({ ...p, height: e.target.value }))}>{heights.map(h => <option key={h} value={h}>Yükseklik: {h} m</option>)}</select>
-        <select style={selectStyle} value={selected.wwr} onChange={e => setSelected(p => ({ ...p, wwr: e.target.value }))}>{wwrs.map(w => <option key={w} value={w}>WWR: {w}</option>)}</select>
-        <select style={selectStyle} value={selected.output} onChange={e => setSelected(p => ({ ...p, output: e.target.value }))}>{outputs.map(o => <option key={o} value={o}>{o}</option>)}</select>
-      </div>
-      <hr />
+    <BrowserOnly fallback={<div>Loading 3D Scatter...</div>}> {/* BrowserOnly ile sarmak */}
+      {() => (
+        <div>
+          {/* Kontrol Menüsü */}
+          <div style={{ display: "flex", flexWrap: 'wrap', gap: "1rem", marginBottom: "2rem", alignItems: 'center' }}>
+            <select style={selectStyle} value={selected.width} onChange={e => setSelected(p => ({ ...p, width: e.target.value }))}>{widths.map(w => <option key={w} value={w}>Genişlik: {w} m</option>)}</select>
+            <select style={selectStyle} value={selected.length} onChange={e => setSelected(p => ({ ...p, length: e.target.value }))}>{lengths.map(l => <option key={l} value={l}>Derinlik: {l} m</option>)}</select>
+            <select style={selectStyle} value={selected.height} onChange={e => setSelected(p => ({ ...p, height: e.target.value }))}>{heights.map(h => <option key={h} value={h}>Yükseklik: {h} m</option>)}</select>
+            <select style={selectStyle} value={selected.wwr} onChange={e => setSelected(p => ({ ...p, wwr: e.target.value }))}>{wwrs.map(w => <option key={w} value={w}>WWR: {w}</option>)}</select>
+            <select style={selectStyle} value={selected.output} onChange={e => setSelected(p => ({ ...p, output: e.target.value }))}>{outputs.map(o => <option key={o} value={o}>{o}</option>)}</select>
+          </div>
+          <hr />
 
-      {/* Grafik 1: Paralel Koordinatlar */}
-      <h3>Tasarım Parametreleri ve Performans İlişkileri (Seçim Yapılabilir)</h3>
-      <Plot
-        data={parcoordsData}
-        layout={{
-          title: 'Paralel Koordinatlar Grafiği',
-          ...transparentLayout,
-          margin: { t: 60, l: 60, r: 60, b: 60 },
-        }}
-        useResizeHandler
-        style={{ width: "100%", height: "500px" }}
-        config={{ responsive: true, displaylogo: false }}
-        onSelected={handleParcoordsSelect}
-        onDeselect={() => setSelectedIndices([])}
-      />
-      
-      <hr />
-      
-      {/* Grafik 2: 3D Dağılım (BAĞLANTILI) */}
-      <h3>Performans Metrikleri Arasındaki İlişki (3D)</h3>
-      <Plot
-        data={scatter3dData}
-        layout={{
-          title: 'Enerji ve Gün Işığı Performansı',
-          autosize: true,
-          ...transparentLayout,
-          margin: { t: 60, l: 0, r: 0, b: 0 },
-          scene: {
-            bgcolor: 'rgba(0,0,0,0)',
-            xaxis: { title: { text: "Soğutma Yükü (kWh)" }, ...transparentLayout },
-            yaxis: { title: { text: "Isıtma Yükü (kWh)" }, ...transparentLayout },
-            zaxis: { title: { text: "Aydınlatma Yükü (kWh)" }, ...transparentLayout },
-          },
-          legend: { orientation: 'h', x: 0.5, xanchor: 'center', y: 1 }
-        }}
-        useResizeHandler
-        style={{ width: "100%", height: "600px" }}
-        config={{ responsive: true, displaylogo: false }}
-      />
-      
-      <hr />
+          {/* Grafik 1: Paralel Koordinatlar */}
+          <h3>Tasarım Parametreleri ve Performans İlişkileri (Seçim Yapılabilir)</h3>
+          <Plot
+            data={parcoordsData}
+            layout={{
+              title: 'Paralel Koordinatlar Grafiği',
+              ...transparentLayout,
+              margin: { t: 60, l: 60, r: 60, b: 60 },
+            }}
+            useResizeHandler
+            style={{ width: "100%", height: "500px" }}
+            config={{ responsive: true, displaylogo: false }}
+            onSelected={handleParcoordsSelect}
+            onDeselect={() => setSelectedIndices([])}
+          />
+          
+          <hr />
+          
+          {/* Grafik 2: 3D Dağılım (BAĞLANTILI) */}
+          <h3>Performans Metrikleri Arasındaki İlişki (3D)</h3>
+          <Plot
+            data={scatter3dData}
+            layout={{
+              title: 'Enerji ve Gün Işığı Performansı',
+              autosize: true,
+              ...transparentLayout,
+              margin: { t: 60, l: 0, r: 0, b: 0 },
+              scene: {
+                bgcolor: 'rgba(0,0,0,0)',
+                xaxis: { title: { text: "Soğutma Yükü (kWh)" }, ...transparentLayout },
+                yaxis: { title: { text: "Isıtma Yükü (kWh)" }, ...transparentLayout },
+                zaxis: { title: { text: "Aydınlatma Yükü (kWh)" }, ...transparentLayout },
+              },
+              legend: { orientation: 'h', x: 0.5, xanchor: 'center', y: 1 }
+            }}
+            useResizeHandler
+            style={{ width: "100%", height: "600px" }}
+            config={{ responsive: true, displaylogo: false }}
+          />
+          
+          <hr />
 
-      {/* Grafik 3: 2D Dağılım Alt Grafikleri (BAĞLANTILI) */}
-      <h3>Seçilen Çıktıya Göre Diğer Metriklerin Dağılımı</h3>
-      <Plot
-          data={scatter2dTraces}
-          layout={scatter2dLayout}
-          useResizeHandler
-          style={{ width: "100%", height: "500px" }}
-          config={{ responsive: true, displaylogo: false }}
-      />
-    </div>
+          {/* Grafik 3: 2D Dağılım Alt Grafikleri (BAĞLANTILI) */}
+          <h3>Seçilen Çıktıya Göre Diğer Metriklerin Dağılımı</h3>
+          <Plot
+            data={scatter2dTraces}
+            layout={scatter2dLayout}
+            useResizeHandler
+            style={{ width: "100%", height: "500px" }}
+            config={{ responsive: true, displaylogo: false }}
+          />
+        </div>
+      )}
+    </BrowserOnly>
   );
 };
 

@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
+import BrowserOnly from '@docusaurus/BrowserOnly';  // BrowserOnly importu
 import * as Plotly from "plotly.js-dist";
 import * as XLSX from "xlsx";
 
 // Flexible type for each parsed Excel row
 interface DataRow { 
-  [key: string]: any 
+  [key: string]: any; 
 }
 
 // Column headers - these will be used as axis labels
