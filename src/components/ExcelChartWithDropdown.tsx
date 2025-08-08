@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Plot from 'react-plotly.js';
 import * as XLSX from 'xlsx';
+import BrowserOnly from "@docusaurus/BrowserOnly";
 
 const col_names = [
   "x",
@@ -75,89 +76,95 @@ const ExcelChartWithDropdown: React.FC = () => {
     fetchAndParseExcel();
   }, [selectedWidth, selectedLength, selectedHeight, selectedWWR]);
 
-  return (
-    <div>
-      {/* Dropdownlar */}
-      <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
-        <label>
-          Width:
-          <select value={selectedWidth} onChange={(e) => setSelectedWidth(e.target.value)}>
-            {widths.map((w) => (
-              <option key={w} value={w}>{w}</option>
-            ))}
-          </select>
-        </label>
-        <label>
-          Length:
-          <select value={selectedLength} onChange={(e) => setSelectedLength(e.target.value)}>
-            {lengths.map((l) => (
-              <option key={l} value={l}>{l}</option>
-            ))}
-          </select>
-        </label>
-        <label>
-          Height:
-          <select value={selectedHeight} onChange={(e) => setSelectedHeight(e.target.value)}>
-            {heights.map((h) => (
-              <option key={h} value={h}>{h}</option>
-            ))}
-          </select>
-        </label>
-        <label>
-          WWR:
-          <select value={selectedWWR} onChange={(e) => setSelectedWWR(e.target.value)}>
-            {wwrs.map((w) => (
-              <option key={w} value={w}>{w}</option>
-            ))}
-          </select>
-        </label>
-      </div>
+return (<BrowserOnly fallback={<div>Loading 3D Scatter...</div>}>
+      {() => {
+        const Plot = require("react-plotly.js").default;
 
-      {/* 2D Grafik */}
-      <Plot
-        data={plotData2D}
-        layout={{ title: `2D Plot for ${buildFilename()}` }}
-        style={{ width: '100%', height: '400px' }}
-      />
+        return (
+          <div>
+            {/* Dropdownlar */}
+            <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
+              <label>
+                Width:
+                <select value={selectedWidth} onChange={(e) => setSelectedWidth(e.target.value)}>
+                  {widths.map((w) => (
+                    <option key={w} value={w}>{w}</option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                Length:
+                <select value={selectedLength} onChange={(e) => setSelectedLength(e.target.value)}>
+                  {lengths.map((l) => (
+                    <option key={l} value={l}>{l}</option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                Height:
+                <select value={selectedHeight} onChange={(e) => setSelectedHeight(e.target.value)}>
+                  {heights.map((h) => (
+                    <option key={h} value={h}>{h}</option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                WWR:
+                <select value={selectedWWR} onChange={(e) => setSelectedWWR(e.target.value)}>
+                  {wwrs.map((w) => (
+                    <option key={w} value={w}>{w}</option>
+                  ))}
+                </select>
+              </label>
+            </div>
 
-      {/* 3D Grafik */}
-      {rawJson.length > 0 && (
-        <Plot
-          data={[
-            {
-              type: 'scatter3d',
-              mode: 'markers',
-              x: rawJson.map((row: any) => row['Cooling Load (kWh)']),
-              y: rawJson.map((row: any) => row['Heating Load (kWh)']),
-              z: rawJson.map((row: any) => row['Artificial Lighting Load (kWh)']),
-              customdata: rawJson.map((row: any) => row['UDI-a (%)']),
-              hovertemplate:
-                'Cooling Load (kWh): %{x}<br>' +
-                'Heating Load (kWh): %{y}<br>' +
-                'Artificial Lighting Load (kWh): %{z}<br>' +
-                'UDI-a: %{customdata}',
-              marker: {
-                size: 5,
-                color: rawJson.map((row: any) => row['UDI-a (%)']),
-                colorscale: 'YlGnBu',
-                colorbar: { title: 'UDI-a (%)' },
-              },
-            },
-          ]}
-          layout={{
-            title: '3D Scatter: Cooling / Heating / Lighting vs UDI-a',
-            scene: {
-              xaxis: { title: 'Cooling Load (kWh)' },
-              yaxis: { title: 'Heating Load (kWh)' },
-              zaxis: { title: 'Artificial Lighting Load (kWh)' },
-            },
-            margin: { l: 0, r: 0, b: 0, t: 40 },
-          }}
-          style={{ width: '100%', height: '600px', marginTop: '2rem' }}
-        />
-      )}
-    </div>
+            {/* 2D Grafik */}
+            <Plot
+              data={plotData2D}
+              layout={{ title: `2D Plot for ${buildFilename()}` }}
+              style={{ width: '100%', height: '400px' }}
+            />
+
+            {/* 3D Grafik */}
+            {rawJson.length > 0 && (
+              <Plot
+                data={[
+                  {
+                    type: 'scatter3d',
+                    mode: 'markers',
+                    x: rawJson.map((row: any) => row['Cooling Load (kWh)']),
+                    y: rawJson.map((row: any) => row['Heating Load (kWh)']),
+                    z: rawJson.map((row: any) => row['Artificial Lighting Load (kWh)']),
+                    customdata: rawJson.map((row: any) => row['UDI-a (%)']),
+                    hovertemplate:
+                      'Cooling Load (kWh): %{x}<br>' +
+                      'Heating Load (kWh): %{y}<br>' +
+                      'Artificial Lighting Load (kWh): %{z}<br>' +
+                      'UDI-a: %{customdata}',
+                    marker: {
+                      size: 5,
+                      color: rawJson.map((row: any) => row['UDI-a (%)']),
+                      colorscale: 'YlGnBu',
+                      colorbar: { title: 'UDI-a (%)' },
+                    },
+                  },
+                ]}
+                layout={{
+                  title: '3D Scatter: Cooling / Heating / Lighting vs UDI-a',
+                  scene: {
+                    xaxis: { title: 'Cooling Load (kWh)' },
+                    yaxis: { title: 'Heating Load (kWh)' },
+                    zaxis: { title: 'Artificial Lighting Load (kWh)' },
+                  },
+                  margin: { l: 0, r: 0, b: 0, t: 40 },
+                }}
+                style={{ width: '100%', height: '600px', marginTop: '2rem' }}
+              />
+            )}
+          </div>
+        );
+      }}
+    </BrowserOnly>
   );
 };
-
 export default ExcelChartWithDropdown;

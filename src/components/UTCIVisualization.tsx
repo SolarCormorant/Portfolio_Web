@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback, FC } from 'react';
+import BrowserOnly from '@docusaurus/BrowserOnly';
 import DomainSlider from '@site/src/components/DomainSlider';
 import '@site/src/components/DomainSlider.css';
 
@@ -23,7 +24,9 @@ const App: FC = () => {
   const [error, setError] = useState<string | null>(null);
   const plotRef = useRef<HTMLDivElement>(null);
 
+  // Plotly'yi sadece tarayıcıda yükle (SSR sırasında çalışmaz)
   useEffect(() => {
+    if (typeof window === 'undefined') return; // güvenlik
     if (window.Plotly) setPlotlyLoaded(true);
     else {
       const script = document.createElement('script');
@@ -69,6 +72,7 @@ const App: FC = () => {
     });
   }, [csvData, headers, meshData, dateRangeSelection, hourRangeSelection]);
 
+  // Verileri sadece istemcide çek
   useEffect(() => {
     (async () => {
       setIsLoading(true);
@@ -79,6 +83,7 @@ const App: FC = () => {
         if (!res.ok) throw new Error();
         mainMesh = parseOBJ(await res.text());
       } catch {
+        // Fallback mesh
         mainMesh = {
           vertices: [[0,0,0],[1,0,0],[1,1,0],[0,1,0],[0,0,1],[1,0,1],[1,1,1],[0,1,1]],
           faces: [[0,1,2],[0,2,3],[4,7,6],[4,6,5],[0,4,5],[0,5,1],[2,6,7],[2,7,3],[0,3,7],[0,7,4],[1,5,6],[1,6,2]]
@@ -102,18 +107,20 @@ const App: FC = () => {
     })();
   }, [parseOBJ, parseCSV]);
 
+  // Plot render (yalnızca client)
   useEffect(() => {
     (async () => {
+      if (typeof window === 'undefined') return; // SSR guard
       if (isLoading || !plotlyLoaded || !plotRef.current || !meshData || !window.Plotly) return;
 
-      // Preserve camera from previous render
-      const gd = plotRef.current;
-      const prevLayout = gd._fullLayout as any;
+      // Önceki kamera açısını koru
+      const gd = plotRef.current as any;
+      const prevLayout = gd?._fullLayout as any;
       const prevCam = prevLayout?.scene?.camera;
 
       const intensity = calculateDomainAverageIntensity();
 
-      const trace = {
+      const trace: any = {
         type: 'mesh3d',
         x: meshData.vertices.map(v => v[0]),
         y: meshData.vertices.map(v => v[1]),
@@ -130,9 +137,9 @@ const App: FC = () => {
         hovertemplate: 'UTCI: %{intensity:.2f}°C<extra></extra>'
       };
 
-      let dataTraces = [trace];
+      const traces: any[] = [trace];
       if (contextMesh) {
-        const contextTrace = {
+        traces.push({
           type: 'mesh3d',
           x: contextMesh.vertices.map(v => v[0]),
           y: contextMesh.vertices.map(v => v[1]),
@@ -144,11 +151,10 @@ const App: FC = () => {
           opacity: 1,
           showscale: false,
           hoverinfo: 'skip'
-        };
-        dataTraces.push(contextTrace);
+        });
       }
 
-      const layout = {
+      const layout: Partial<Plotly.Layout> = {
         scene: {
           xaxis: { visible: false },
           yaxis: { visible: false },
@@ -159,33 +165,37 @@ const App: FC = () => {
         margin: { l: 0, r: 0, b: 0, t: 0 },
         paper_bgcolor: 'rgba(0,0,0,0)',
         plot_bgcolor: 'rgba(0,0,0,0)'
-      };
+      } as any;
 
-      await window.Plotly.newPlot(gd, dataTraces, layout, { responsive: true });
+      await window.Plotly.newPlot(plotRef.current!, traces, layout, { responsive: true });
     })();
   }, [isLoading, plotlyLoaded, meshData, contextMesh, calculateDomainAverageIntensity, dateRangeSelection, hourRangeSelection]);
 
   if (isLoading) return <div>Loading...</div>;
 
   return (
-    <div className="bg-gray-50 min-h-screen p-4">
-      <div className="max-w-4xl mx-auto">
-        {error && <div className="bg-red-100 border-l-4 border-red-500 p-4 mb-6 rounded"><strong>Hata:</strong> {error}</div>}
-        <div className="bg-white p-6 rounded shadow mb-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <DomainSlider min={0} max={availableDates.length - 1} step={1} label="Date Range" onChange={setDateRangeSelection} />
-            <div className="mt-2 text-blue-600">{availableDates[dateRangeSelection[0]]} - {availableDates[dateRangeSelection[1]]} {dateRange.month}</div>
-          </div>
-          <div>
-            <DomainSlider min={0} max={availableHours.length - 1} step={1} label="Hour Range" onChange={setHourRangeSelection} />
-            <div className="mt-2 text-blue-600">{availableHours[hourRangeSelection[0]]}:00 - {availableHours[hourRangeSelection[1]]}:00</div>
+    <BrowserOnly fallback={<div>Loading client…</div>}>
+      {() => (
+        <div className="bg-gray-50 min-h-screen p-4">
+          <div className="max-w-4xl mx-auto">
+            {error && <div className="bg-red-100 border-l-4 border-red-500 p-4 mb-6 rounded"><strong>Hata:</strong> {error}</div>}
+            <div className="bg-white p-6 rounded shadow mb-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <DomainSlider min={0} max={availableDates.length - 1} step={1} label="Date Range" onChange={setDateRangeSelection} />
+                <div className="mt-2 text-blue-600">{availableDates[dateRangeSelection[0]]} - {availableDates[dateRangeSelection[1]]} {dateRange.month}</div>
+              </div>
+              <div>
+                <DomainSlider min={0} max={availableHours.length - 1} step={1} label="Hour Range" onChange={setHourRangeSelection} />
+                <div className="mt-2 text-blue-600">{availableHours[hourRangeSelection[0]]}:00 - {availableHours[hourRangeSelection[1]]}:00</div>
+              </div>
+            </div>
+            <div className="bg-white rounded shadow p-2">
+              <div ref={plotRef} className="w-full h-[600px]" />
+            </div>
           </div>
         </div>
-        <div className="bg-white rounded shadow p-2">
-          <div ref={plotRef} className="w-full h-[600px]" />
-        </div>
-      </div>
-    </div>
+      )}
+    </BrowserOnly>
   );
 };
 
