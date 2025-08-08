@@ -1,0 +1,115 @@
+.sliderContainer {
+    margin: 20px 0;
+    padding: 20px;
+    border: 1px solid var(--ifm-color-emphasis-300);
+    border-radius: 8px;
+    background: var(--ifm-background-color);
+}
+
+.sliderLabel {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 15px;
+    color: var(--ifm-color-content);
+    text-align: center;
+}
+
+.sliderWrapper {
+    position: relative;
+    height: 40px;
+    margin: 20px 0;
+}
+
+.slider {
+    position: absolute;
+    width: 100%;
+    height: 6px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: transparent;
+    outline: none;
+    border-radius: 3px;
+    pointer-events: none;
+}
+
+.slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--ifm-color-primary);
+    cursor: pointer;
+    pointer-events: all;
+    border: 2px solid white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.slider::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--ifm-color-primary);
+    cursor: pointer;
+    pointer-events: all;
+    border: 2px solid white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.sliderStart {
+    z-index: 2;
+}
+
+.sliderEnd {
+    z-index: 1;
+}
+
+.sliderTrack {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 100%;
+    height: 6px;
+    background: var(--ifm-color-emphasis-300);
+    border-radius: 3px;
+}
+
+.sliderRange {
+    position: absolute;
+    height: 100%;
+    background: var(--ifm-color-primary);
+    border-radius: 3px;
+}
+
+.yearLabels {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 15px;
+    font-size: 14px;
+    color: var(--ifm-color-content-secondary);
+}
+
+/* Dark mode desteği */
+[data-theme='dark'] .sliderContainer {
+    border-color: var(--ifm-color-emphasis-200);
+}
+
+[data-theme='dark'] .sliderTrack {
+    background: var(--ifm-color-emphasis-400);
+}
+
+/* Responsive tasarım */
+@media (max-width: 768px) {
+    .sliderContainer {
+        margin: 15px 0;
+        padding: 15px;
+    }
+
+    .sliderLabel {
+        font-size: 14px;
+    }
+
+    .yearLabels {
+        font-size: 12px;
+    }
+}

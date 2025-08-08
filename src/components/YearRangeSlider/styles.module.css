@@ -1,0 +1,185 @@
+/* src/components/styles.module.css */
+
+.container {
+  margin: 30px auto;
+  padding: 25px;
+  border: 1px solid var(--ifm-color-gray-300);
+  border-radius: 10px;
+  background-color: var(--ifm-background-color);
+  color: var(--ifm-font-color-base);
+  max-width: 650px; /* Konteynır genişliği */
+  box-shadow: var(--ifm-global-shadow-md);
+}
+
+.currentValues {
+  text-align: center;
+  margin-bottom: 25px;
+  padding-bottom: 15px;
+  border-bottom: 1px dashed var(--ifm-color-gray-200);
+}
+
+.selectionInfo h3 {
+  margin-top: 0;
+  margin-bottom: 8px;
+  color: var(--ifm-color-primary);
+  font-size: 1.4em;
+}
+
+.highlight {
+  font-size: 1.15em;
+  font-weight: bold;
+  color: var(--ifm-color-primary-dark);
+  margin-bottom: 8px;
+}
+
+.sliderSection {
+  margin-bottom: 40px; /* Bölümler arasında boşluk */
+}
+
+.sliderSection h4 {
+  margin-top: 0;
+  margin-bottom: 25px;
+  color: var(--ifm-color-emphasis-700);
+  font-size: 1.2em;
+  text-align: center;
+  border-bottom: 1px solid var(--ifm-color-gray-200);
+  padding-bottom: 10px;
+}
+
+.sliderContainer {
+  position: relative;
+  height: 50px;
+  margin-bottom: 15px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.sliderWrapper {
+  position: relative;
+  width: 100%;
+  height: 20px;
+}
+
+.sliderTrack {
+  position: absolute;
+  width: 100%;
+  height: 8px; /* Kaydırıcı yolunun kalınlığı */
+  background: var(--ifm-color-gray-400);
+  border-radius: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  overflow: hidden; /* Doldurma çubuğunun dışarı taşmasını engellemek için */
+}
+
+/* Kaydırıcının solundaki dolgu çubuğu */
+.sliderFill {
+  position: absolute;
+  height: 100%;
+  background: var(--ifm-color-primary); /* Dolgu rengi varsayılan */
+  border-radius: 4px;
+  left: 0;
+}
+
+/* Gün ve Saat kaydırıcıları için farklı dolgu renkleri */
+.dayFill {
+  background: var(--ifm-color-info); /* Mavi tonu */
+}
+
+.hourFill {
+  background: var(--ifm-color-success); /* Yeşil tonu */
+}
+
+.slider {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 0; /* Varsayılan kaydırıcı yolunu gizle */
+  background: transparent; /* Arka planı şeffaf yap */
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  /* pointer-events: none; */ /* Bu satırı tekli kaydırıcı için kaldırdık, çünkü başparmak doğrudan etkileşimli olmalı */
+}
+
+/* Tekli kaydırıcı başparmağı */
+.singleSlider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 28px; /* Başparmak boyutu */
+  height: 28px;
+  background: var(--ifm-color-primary); /* Başparmak rengi */
+  border: 3px solid var(--ifm-color-white); /* Beyaz çerçeve */
+  border-radius: 50%;
+  cursor: grab;
+  margin-top: -10px; /* Kaydırıcı yoluyla hizalamak için */
+  pointer-events: all; /* Başparmağı etkileşimli yap */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Gölge */
+  transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.singleSlider::-moz-range-thumb {
+  width: 28px;
+  height: 28px;
+  background: var(--ifm-color-primary);
+  border: 3px solid var(--ifm-color-white);
+  border-radius: 50%;
+  cursor: grab;
+  pointer-events: all;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.singleSlider::-webkit-slider-thumb:hover,
+.singleSlider::-moz-range-thumb:hover {
+  background-color: var(--ifm-color-primary-dark);
+  transform: scale(1.1);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+}
+
+.dayLabels,
+.hourLabels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 15px;
+  font-size: 0.9em;
+  color: var(--ifm-font-color-secondary);
+}
+
+.valueIndicators {
+  display: flex;
+  justify-content: center; /* Tek kutuyu ortalamak için */
+  margin-top: 25px;
+  text-align: center;
+}
+
+.valueBox {
+  padding: 12px 20px; /* Daha fazla iç boşluk */
+  border-radius: 8px;
+  background-color: var(--ifm-code-background);
+  color: var(--ifm-font-color-base);
+  box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-width: 150px; /* Minimum genişlik */
+}
+
+.valueBox label {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 5px;
+  color: var(--ifm-color-emphasis-800);
+}
+
+.valueBox span {
+  font-size: 1.4em;
+  font-weight: bold;
+  color: var(--ifm-color-primary-darker);
+  line-height: 1.2;
+}
+
+.valueBox small {
+  display: block;
+  font-size: 0.85em;
+  color: var(--ifm-font-color-secondary);
+  margin-top: 5px;
+}

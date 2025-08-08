@@ -1,0 +1,15 @@
+---
+title: İnteraktif Analiz Grafikleri
+---
+
+import InteractivePlots from '@site/src/components/G_InteractivePlots';
+
+Bu sayfa, farklı oda boyutları ve pencere-duvar oranları (WWR) için enerji ve gün ışığı simülasyon sonuçlarını interaktif olarak incelemenizi sağlar. Aşağıdaki menüleri kullanarak parametreleri değiştirin ve grafiklerin nasıl güncellendiğini gözlemleyin.
+
+<InteractivePlots />
+
+### Grafikler Nasıl Okunur?
+
+* **Paralel Koordinatlar:** Her bir dikey çizgi bir parametreyi temsil eder. Renkli çizgiler, farklı simülasyon senaryolarını gösterir. Bu grafik, hangi tasarım parametrelerinin hangi sonuçları etkilediğini anlamak için kullanışlıdır.
+* **3D Dağılım Grafiği:** Soğutma, ısıtma ve yapay aydınlatma yükleri arasındaki ödünleşimleri (trade-off) gösterir. Kırmızı çarpılar, çok amaçlı optimizasyon sonucunda bulunan en iyi çözümleri (Pareto Seti) temsil eder.
+* **2D Dağılım Alt Grafikleri:** Seçtiğiniz bir ana metriğe (örneğin Isıtma Yükü) karşı diğer metriklerin nasıl değiştiğini gösterir. Üst sıra tüm çözümleri, alt sıra ise sadece Pareto setindeki en iyi çözümleri içerir.

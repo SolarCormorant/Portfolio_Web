@@ -1,0 +1,78 @@
+/**
+ * Any CSS included here will be global. The classic template
+ * bundles Infima by default. Infima is a CSS framework designed to
+ * work well for content-centric websites.
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=Jost:wght@400;500;600;700&display=swap');
+
+/* You can override the default Infima variables here. */
+:root {
+  --ifm-color-primary: #268bd2;
+    /* Solarized Light'ın mavi tonu */
+    --ifm-color-secondary: #eee8d5;
+    /* Solarized Light'ın base1 tonu */
+    --ifm-background-color: #fdf6e3;
+    /* Solarized Light'ın base3 tonu */
+    --ifm-font-color-base: #586e75;
+    /* Solarized Light'ın base01 tonu */
+    --ifm-link-color: #268bd2;
+    /* Linkler için mavi tonu kullanma */
+  --ifm-font-family-base: 'Jost', sans-serif;
+    --ifm-toc-link-color: #657b83;
+      /* Solarized Light'ın base00 tonu */
+    
+      /* TOC'daki aktif linkin (şu an görünür olan başlığın) rengi */
+      --ifm-toc-link-active-color: #b58900;
+      /* Solarized Light'ın turuncu tonu */
+    
+      /* TOC'daki aktif linkin solundaki çizginin rengi (indicator) */
+      --ifm-toc-link-active-border-color: #b58900;
+      /* Aktif link rengiyle aynı */
+}
+
+/* src/css/custom.css */
+
+/* TOC'daki tüm linkler için */
+.table-of-contents__link {
+  color: #657b83;
+  /* Solarized Light'ın base00 tonu */
+}
+
+/* TOC'daki aktif linkler için */
+.table-of-contents__link--active {
+  color: #b58900;
+  /* Solarized Light'ın turuncu tonu */
+}
+
+/* TOC'daki aktif linkin solundaki çizgi için */
+.table-of-contents__link--active::before {
+  background-color: #b58900;
+  /* Aktif link rengiyle aynı */
+}
+.theme-doc-sidebar-menu {
+  color: #586e75;
+  /* Solarized Light'ın base01 tonu gibi bir renk */
+}
+
+.menu__link {
+  color: #657b83;
+  /* Solarized Light'ın base00 tonu gibi bir renk */
+}
+
+.menu__link--active {
+  color: #b58900;
+  /* Aktif link rengi - Solarized Light'ın turuncusu gibi */
+}
+/* For readability concerns, you should choose a lighter palette in dark mode. */
+[data-theme='dark'] {
+  --ifm-color-primary: #25c2a0;
+  --ifm-color-primary-dark: #21af90;
+  --ifm-color-primary-darker: #1fa588;
+  --ifm-color-primary-darkest: #1a8870;
+  --ifm-color-primary-light: #29d5b0;
+  --ifm-color-primary-lighter: #32d8b4;
+  --ifm-color-primary-lightest: #4fddbf;
+  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
+}
+
